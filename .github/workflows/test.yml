@@ -1,0 +1,37 @@
+name: C/C++ CI
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [ "main" ]
+
+jobs:
+  build-and-merge:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Install g++
+        run: sudo apt-get update && sudo apt-get install -y g++
+
+      - name: Compile factorial.cpp to object file
+        run: g++ -c factorial.cpp -o factorial.o
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Checkout main and merge PR changes
+        run: |
+          git fetch origin
+          git checkout main
+          git merge origin/${{ github.event.pull_request.head.ref }} --no-edit
+
+      - name: Push merged changes to main
+        run: git push origin main
