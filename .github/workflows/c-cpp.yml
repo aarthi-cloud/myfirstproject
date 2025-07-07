@@ -1,0 +1,38 @@
+name: Factorial CI and Merge
+
+on:
+  push:
+    branches:
+      - test_branch
+
+jobs:
+  build-and-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout test_branch
+        uses: actions/checkout@v3
+        with:
+          ref: test_branch
+
+      - name: Install g++
+        run: sudo apt-get update && sudo apt-get install -y g++
+
+      - name: Compile factorial.cpp to object file
+        run: g++ -c factorial.cpp -o factorial.o
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all branches
+        run: git fetch origin
+
+      - name: Switch to main and merge test_branch
+        run: |
+          git checkout main
+          git merge origin/test_branch --no-edit
+
+      - name: Push merged changes to main
+        run: git push origin main
